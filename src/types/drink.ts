@@ -3,7 +3,6 @@ export interface Drink {
   date: string
   brand: string
   name: string
-  flavor: string
   rating: number
   createdAt: string
   updatedAt: string

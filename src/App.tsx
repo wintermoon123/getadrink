@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Coffee, Plus } from 'lucide-react'
+import { Coffee } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { newArrivals } from '@/data/newArrivals'
 import { useDrinkStore } from '@/hooks/useDrinkStore'
 import { AppHeader } from '@/sections/AppHeader'
 import { DrinkDialog } from '@/sections/DrinkDialog'
 import { DrinkList } from '@/sections/DrinkList'
 import { FilterBar, FILTER_ALL } from '@/sections/FilterBar'
+import { NavBar, type TabKey } from '@/sections/NavBar'
+import { NewArrivalsSection } from '@/sections/NewArrivalsSection'
 import { SettingsDialog } from '@/sections/SettingsDialog'
 import { StatsBar } from '@/sections/StatsBar'
 import type { Drink, DrinkInput } from '@/types/drink'
@@ -21,20 +23,16 @@ function notifySaved(synced: boolean, action: string) {
 
 function App() {
   const store = useDrinkStore()
+  const [activeTab, setActiveTab] = useState<TabKey>('newarrivals')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Drink | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [brand, setBrand] = useState(FILTER_ALL)
-  const [flavor, setFlavor] = useState(FILTER_ALL)
   const [rating, setRating] = useState(FILTER_ALL)
 
   const brands = useMemo(
     () => Array.from(new Set(store.drinks.map((item) => item.brand).filter(Boolean))).sort(),
-    [store.drinks],
-  )
-  const flavors = useMemo(
-    () => Array.from(new Set(store.drinks.map((item) => item.flavor).filter(Boolean))).sort(),
     [store.drinks],
   )
 
@@ -43,19 +41,15 @@ function App() {
     return store.drinks
       .filter((item) => {
         const matchesKeyword =
-          !keyword ||
-          [item.brand, item.name, item.flavor].some((field) =>
-            field.toLowerCase().includes(keyword),
-          )
+          !keyword || [item.brand, item.name].some((field) => field.toLowerCase().includes(keyword))
         return (
           matchesKeyword &&
           (brand === FILTER_ALL || item.brand === brand) &&
-          (flavor === FILTER_ALL || item.flavor === flavor) &&
           (rating === FILTER_ALL || item.rating >= Number(rating))
         )
       })
       .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt))
-  }, [store.drinks, search, brand, flavor, rating])
+  }, [store.drinks, search, brand, rating])
 
   useEffect(() => {
     if (store.error) toast.error(store.error)
@@ -124,7 +118,6 @@ function App() {
         date: item.date || now.slice(0, 10),
         brand: item.brand || '',
         name: item.name || '未命名',
-        flavor: item.flavor || '',
         rating: Number(item.rating) || 5,
         createdAt: item.createdAt || now,
         updatedAt: item.updatedAt || now,
@@ -142,7 +135,7 @@ function App() {
     <>
       <Toaster position="top-center" theme="light" richColors />
 
-      <main className="min-h-screen px-4 pb-28 pt-2 sm:px-6">
+      <main className="min-h-screen px-4 pb-12 pt-2 sm:px-6">
         <div className="mx-auto max-w-2xl">
           <AppHeader
             connected={store.connected}
@@ -150,49 +143,45 @@ function App() {
             onOpenSettings={() => setSettingsOpen(true)}
           />
 
-          <StatsBar drinks={store.drinks} />
+          <NavBar active={activeTab} onChange={setActiveTab} onRecord={openAdd} />
 
-          <FilterBar
-            search={search}
-            onSearchChange={setSearch}
-            brand={brand}
-            onBrandChange={setBrand}
-            flavor={flavor}
-            onFlavorChange={setFlavor}
-            rating={rating}
-            onRatingChange={setRating}
-            brands={brands}
-            flavors={flavors}
-          />
-
-          {store.loading ? (
-            <p className="py-16 text-center font-hand text-2xl text-muted-foreground">
-              正在翻开手帐…
-            </p>
-          ) : filtered.length > 0 ? (
-            <DrinkList drinks={filtered} onEdit={openEdit} onDelete={handleDelete} />
+          {activeTab === 'newarrivals' ? (
+            <NewArrivalsSection data={newArrivals} />
           ) : (
-            <div className="journal-card px-6 py-14 text-center">
-              <Coffee className="mx-auto h-8 w-8 text-accent" />
-              <p className="mt-3 font-hand text-2xl">这一页还空着</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {store.drinks.length > 0
-                  ? '换个筛选条件试试，或记下新的一杯。'
-                  : '点右下角的 +，记下第一杯。'}
-              </p>
-            </div>
+            <>
+              <StatsBar drinks={store.drinks} />
+
+              <FilterBar
+                search={search}
+                onSearchChange={setSearch}
+                brand={brand}
+                onBrandChange={setBrand}
+                rating={rating}
+                onRatingChange={setRating}
+                brands={brands}
+              />
+
+              {store.loading ? (
+                <p className="py-16 text-center font-hand text-2xl text-muted-foreground">
+                  正在翻开手帐…
+                </p>
+              ) : filtered.length > 0 ? (
+                <DrinkList drinks={filtered} onEdit={openEdit} onDelete={handleDelete} />
+              ) : (
+                <div className="journal-card px-6 py-14 text-center">
+                  <Coffee className="mx-auto h-8 w-8 text-accent" />
+                  <p className="mt-3 font-hand text-2xl">这一页还空着</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {store.drinks.length > 0
+                      ? '换个筛选条件试试，或点「记一杯」写下一杯。'
+                      : '点上方导航栏的「记一杯」，记下第一杯。'}
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>
-
-      <Button
-        onClick={openAdd}
-        aria-label="新增记录"
-        className="fixed right-6 z-40 h-14 w-14 cursor-pointer rounded-full bg-accent text-accent-foreground shadow-lg transition-colors hover:bg-accent/90"
-        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
-      >
-        <Plus className="h-6 w-6" />
-      </Button>
 
       <DrinkDialog
         open={dialogOpen}

@@ -26,9 +26,6 @@ export function DrinkList({ drinks, onEdit, onDelete }: DrinkListProps) {
                 <span className="truncate">{drink.brand || '未填品牌'}</span>
               </div>
               <h3 className="mt-1 truncate font-hand text-2xl text-foreground">{drink.name}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                口味：{drink.flavor || '未填'}
-              </p>
             </div>
 
             <div className="flex shrink-0 items-center gap-1">

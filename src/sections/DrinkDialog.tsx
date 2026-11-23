@@ -26,7 +26,6 @@ export function DrinkDialog({ open, onOpenChange, initial, onSubmit }: DrinkDial
   const [date, setDate] = useState(today)
   const [brand, setBrand] = useState('')
   const [name, setName] = useState('')
-  const [flavor, setFlavor] = useState('')
   const [rating, setRating] = useState(5)
   const [submitting, setSubmitting] = useState(false)
 
@@ -35,7 +34,6 @@ export function DrinkDialog({ open, onOpenChange, initial, onSubmit }: DrinkDial
     setDate(initial?.date ?? today())
     setBrand(initial?.brand ?? '')
     setName(initial?.name ?? '')
-    setFlavor(initial?.flavor ?? '')
     setRating(initial?.rating ?? 5)
   }, [open, initial])
 
@@ -48,7 +46,6 @@ export function DrinkDialog({ open, onOpenChange, initial, onSubmit }: DrinkDial
         date,
         brand: brand.trim(),
         name: name.trim(),
-        flavor: flavor.trim(),
         rating,
       })
       onOpenChange(false)
@@ -65,7 +62,7 @@ export function DrinkDialog({ open, onOpenChange, initial, onSubmit }: DrinkDial
           <DialogTitle className="font-hand text-3xl">
             {initial ? '改一页' : '记一杯'}
           </DialogTitle>
-          <DialogDescription>写下这一杯的日期、品牌、口味和心情分数。</DialogDescription>
+          <DialogDescription>写下这一杯的日期、品牌、名称和心情分数。</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-2 grid gap-4">
@@ -80,25 +77,14 @@ export function DrinkDialog({ open, onOpenChange, initial, onSubmit }: DrinkDial
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="drink-brand">品牌</Label>
-              <Input
-                id="drink-brand"
-                value={brand}
-                onChange={(event) => setBrand(event.target.value)}
-                placeholder="例如：星巴克"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="drink-flavor">口味</Label>
-              <Input
-                id="drink-flavor"
-                value={flavor}
-                onChange={(event) => setFlavor(event.target.value)}
-                placeholder="例如：燕麦拿铁"
-              />
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="drink-brand">品牌</Label>
+            <Input
+              id="drink-brand"
+              value={brand}
+              onChange={(event) => setBrand(event.target.value)}
+              placeholder="例如：星巴克"
+            />
           </div>
 
           <div className="grid gap-2">
